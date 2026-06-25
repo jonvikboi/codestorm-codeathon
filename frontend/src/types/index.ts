@@ -188,3 +188,12 @@ export interface DeadlineFilters {
   subject: string | 'all';
   search: string;
 }
+
+// ---- Attendance ----
+export interface SubjectAttendance {
+  id: string;
+  subject: string;
+  classesAttended: number;
+  totalClasses: number;
+}
+

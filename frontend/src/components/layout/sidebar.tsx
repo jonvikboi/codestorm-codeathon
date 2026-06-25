@@ -11,6 +11,7 @@ import {
   GraduationCap,
   ChevronLeft,
   Sparkles,
+  Percent,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { APP_NAME } from '@/constants';
@@ -18,6 +19,7 @@ import { APP_NAME } from '@/constants';
 const navItems = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { title: 'Deadlines', href: '/deadlines', icon: CalendarClock },
+  { title: 'Attendance', href: '/attendance', icon: Percent },
   { title: 'Automations', href: '/automations', icon: Workflow },
 ];
 

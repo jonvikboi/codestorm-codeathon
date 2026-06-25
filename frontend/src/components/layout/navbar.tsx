@@ -17,6 +17,7 @@ import {
   Settings,
   User,
   ChevronDown,
+  Percent,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -28,6 +29,7 @@ import { APP_NAME } from '@/constants';
 const mobileNavItems = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { title: 'Deadlines', href: '/deadlines', icon: CalendarClock },
+  { title: 'Attendance', href: '/attendance', icon: Percent },
   { title: 'Automations', href: '/automations', icon: Workflow },
 ];
 
@@ -59,6 +61,7 @@ export function Navbar() {
   const pageTitle = React.useMemo(() => {
     if (pathname === '/dashboard') return 'Dashboard';
     if (pathname === '/deadlines') return 'Smart Deadline Manager';
+    if (pathname === '/attendance') return 'Attendance Risk Alerter';
     if (pathname === '/automations') return 'My Automations';
     return 'CampusFlow';
   }, [pathname]);

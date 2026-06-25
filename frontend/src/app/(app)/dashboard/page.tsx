@@ -20,6 +20,9 @@ import {
   Workflow,
   Brain,
   Bell,
+  Percent,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +35,7 @@ import {
   mockActivity,
   mockAiTip,
   mockCalendarEvents,
+  mockAttendance,
 } from '@/lib/mock-data';
 import { cn, formatDate, formatRelativeTime } from '@/lib/utils';
 import { staggerContainer, staggerItem, cardHover } from '@/lib/animations';
@@ -60,6 +64,28 @@ export default function DashboardPage() {
   }, []);
 
   const firstName = mockStudent.fullName.split(' ')[0];
+
+  // Attendance calculations
+  const attendanceStats = React.useMemo(() => {
+    const attended = mockAttendance.reduce((sum, item) => sum + item.classesAttended, 0);
+    const total = mockAttendance.reduce((sum, item) => sum + item.totalClasses, 0);
+    const percentage = total > 0 ? (attended / total) * 100 : 0;
+    
+    // find critical / at-risk subjects
+    const warnings = mockAttendance
+      .map((item) => {
+        const pct = item.totalClasses > 0 ? (item.classesAttended / item.totalClasses) * 100 : 0;
+        return {
+          ...item,
+          pct,
+          status: pct >= 75 ? 'safe' : pct >= 65 ? 'at-risk' : 'critical'
+        };
+      })
+      .filter((item) => item.status !== 'safe')
+      .slice(0, 3);
+      
+    return { percentage, warnings };
+  }, []);
 
   return (
     <motion.div
@@ -337,11 +363,11 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      {/* Bottom Grid: Calendar + Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Bottom Grid: Calendar + Attendance + Recent Activity */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Calendar Preview */}
-        <motion.div variants={staggerItem}>
-          <Card>
+        <motion.div variants={staggerItem} className="xl:col-span-1">
+          <Card className="h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary" />
@@ -381,9 +407,105 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
+        {/* Attendance Risk Widget */}
+        <motion.div variants={staggerItem} className="xl:col-span-1">
+          <Card className="h-full flex flex-col justify-between">
+            <div>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <Percent className="h-4 w-4 text-primary" />
+                    Attendance Risk
+                  </CardTitle>
+                  <Badge
+                    variant={attendanceStats.percentage >= 75 ? 'success' : 'destructive'}
+                    className="text-[10px]"
+                  >
+                    Overall: {attendanceStats.percentage.toFixed(1)}%
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Overall Target Progress */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[11px] text-muted-foreground">
+                    <span>Overall Target Progress</span>
+                    <span className="font-semibold">{attendanceStats.percentage.toFixed(0)}% / 75%</span>
+                  </div>
+                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full rounded-full transition-all duration-500',
+                        attendanceStats.percentage >= 75
+                          ? 'bg-emerald-500'
+                          : attendanceStats.percentage >= 65
+                          ? 'bg-amber-500'
+                          : 'bg-red-500'
+                      )}
+                      style={{ width: `${Math.min(100, attendanceStats.percentage)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Warnings List */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    At-Risk Subjects
+                  </p>
+                  {attendanceStats.warnings.length === 0 ? (
+                    <div className="flex items-center gap-2 text-xs text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 p-2.5 rounded-xl">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                      <span>All subjects have safe attendance (&ge;75%)!</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {attendanceStats.warnings.map((subject) => (
+                        <div
+                          key={subject.id}
+                          className="flex items-start gap-2.5 p-2 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors"
+                        >
+                          <div className="mt-0.5">
+                            {subject.status === 'critical' ? (
+                              <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
+                            ) : (
+                              <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-baseline">
+                              <p className="text-xs font-semibold truncate text-foreground">
+                                {subject.subject}
+                              </p>
+                              <span className={cn('text-[10px] font-bold', subject.status === 'critical' ? 'text-red-500' : 'text-amber-500')}>
+                                {subject.pct.toFixed(0)}%
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              {subject.classesAttended} of {subject.totalClasses} classes attended
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </div>
+            <div className="p-4 pt-0">
+              <Link
+                href="/attendance"
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-medium h-8 border border-border hover:bg-accent hover:text-accent-foreground transition-all"
+              >
+                Detailed Attendance Alerter
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </Card>
+        </motion.div>
+
         {/* Recent Activity */}
-        <motion.div variants={staggerItem}>
-          <Card>
+        <motion.div variants={staggerItem} className="xl:col-span-1">
+          <Card className="h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Activity className="h-4 w-4 text-primary" />

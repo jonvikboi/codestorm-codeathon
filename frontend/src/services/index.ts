@@ -1,1 +1,2 @@
-export { studentService, deadlineService, studyPlanService, automationService, dashboardService } from './api';
+export { studentService, deadlineService, studyPlanService, automationService, dashboardService, attendanceService } from './api';
+
