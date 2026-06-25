@@ -42,52 +42,52 @@
 
 /* ---- Light Theme ---- */
 :root {
-  --background: #fafbff;
-  --foreground: #0f172a;
+  --background: #f6f0e9;
+  --foreground: #2d2a29;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #2d2a29;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #6366f1;
+  --popover-foreground: #2d2a29;
+  --primary: #e76f51;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #1e293b;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #e0e7ff;
-  --accent-foreground: #3730a3;
-  --destructive: #ef4444;
+  --secondary: #efe8de;
+  --secondary-foreground: #2d2a29;
+  --muted: #f6f0e9;
+  --muted-foreground: #9a9288;
+  --accent: #fdf1eb;
+  --accent-foreground: #e76f51;
+  --destructive: #e76f51;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #6366f1;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #334155;
+  --border: #eae4d9;
+  --input: #eae4d9;
+  --ring: #e76f51;
+  --sidebar: #efe8de;
+  --sidebar-foreground: #6e675f;
 }
 
 /* ---- Dark Theme ---- */
 .dark {
-  --background: #050816;
-  --foreground: #e2e8f0;
-  --card: #0f1629;
-  --card-foreground: #e2e8f0;
-  --popover: #0f1629;
-  --popover-foreground: #e2e8f0;
-  --primary: #818cf8;
-  --primary-foreground: #050816;
-  --secondary: #1e293b;
-  --secondary-foreground: #e2e8f0;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #312e81;
-  --accent-foreground: #c7d2fe;
-  --destructive: #dc2626;
-  --destructive-foreground: #fef2f2;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #818cf8;
-  --sidebar: #0a0f1e;
-  --sidebar-foreground: #94a3b8;
+  --background: #1e1b18;
+  --foreground: #eae6e1;
+  --card: #2a2522;
+  --card-foreground: #eae6e1;
+  --popover: #2a2522;
+  --popover-foreground: #eae6e1;
+  --primary: #ff8f76;
+  --primary-foreground: #1e1b18;
+  --secondary: #35302c;
+  --secondary-foreground: #eae6e1;
+  --muted: #35302c;
+  --muted-foreground: #b5aca2;
+  --accent: #422b25;
+  --accent-foreground: #ffab95;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #35302c;
+  --input: #35302c;
+  --ring: #ff8f76;
+  --sidebar: #25211e;
+  --sidebar-foreground: #b5aca2;
 }
 
 /* ---- Base Styles ---- */
@@ -138,31 +138,31 @@ body {
 
 /* ---- Gradient Backgrounds ---- */
 .gradient-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+  background: linear-gradient(135deg, #e76f51 0%, #f4a261 50%, #e9c46a 100%);
 }
 
 .gradient-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(231, 111, 81, 0.04) 0%, rgba(244, 162, 97, 0.04) 100%);
 }
 
 .dark .gradient-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.08) 100%);
+  background: linear-gradient(135deg, rgba(255, 143, 118, 0.08) 0%, rgba(255, 171, 149, 0.06) 100%);
 }
 
 .gradient-mesh {
   background:
-    radial-gradient(at 27% 37%, hsla(250, 82%, 68%, 0.08) 0px, transparent 50%),
-    radial-gradient(at 97% 21%, hsla(256, 82%, 68%, 0.06) 0px, transparent 50%),
-    radial-gradient(at 52% 99%, hsla(225, 82%, 68%, 0.06) 0px, transparent 50%),
-    radial-gradient(at 10% 29%, hsla(260, 82%, 68%, 0.04) 0px, transparent 50%);
+    radial-gradient(at 27% 37%, hsla(25, 80%, 60%, 0.06) 0px, transparent 50%),
+    radial-gradient(at 97% 21%, hsla(45, 80%, 60%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 52% 99%, hsla(180, 60%, 50%, 0.04) 0px, transparent 50%),
+    radial-gradient(at 10% 29%, hsla(25, 80%, 60%, 0.03) 0px, transparent 50%);
 }
 
 .dark .gradient-mesh {
   background:
-    radial-gradient(at 27% 37%, hsla(250, 82%, 68%, 0.15) 0px, transparent 50%),
-    radial-gradient(at 97% 21%, hsla(256, 82%, 68%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 52% 99%, hsla(225, 82%, 68%, 0.1) 0px, transparent 50%),
-    radial-gradient(at 10% 29%, hsla(260, 82%, 68%, 0.06) 0px, transparent 50%);
+    radial-gradient(at 27% 37%, hsla(25, 80%, 60%, 0.12) 0px, transparent 50%),
+    radial-gradient(at 97% 21%, hsla(45, 80%, 60%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 52% 99%, hsla(180, 60%, 50%, 0.08) 0px, transparent 50%),
+    radial-gradient(at 10% 29%, hsla(25, 80%, 60%, 0.06) 0px, transparent 50%);
 }
 
 /* ---- Skeleton Animation ---- */

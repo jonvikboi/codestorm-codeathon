@@ -43,7 +43,7 @@ export default function HomePage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-4xl md:text-6xl font-bold tracking-tight mb-4"
         >
-          <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary via-emerald-500 to-amber-500 bg-clip-text text-transparent">
             {APP_NAME}
           </span>
         </motion.h1>
