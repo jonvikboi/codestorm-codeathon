@@ -991,8 +991,8 @@ function CalendarView({
 // ============================================================
 function StudyPlanCard({ plan, onClose }: { plan: StudyPlan; onClose: () => void }) {
   const typeColors: Record<string, string> = {
-    reading: 'from-blue-500/10 to-blue-500/5 border-blue-500/20',
-    practice: 'from-purple-500/10 to-purple-500/5 border-purple-500/20',
+    reading: 'from-teal-500/10 to-teal-500/5 border-teal-500/20',
+    practice: 'from-orange-500/10 to-orange-500/5 border-orange-500/20',
     revision: 'from-amber-500/10 to-amber-500/5 border-amber-500/20',
     assessment: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20',
   };
@@ -1013,7 +1013,7 @@ function StudyPlanCard({ plan, onClose }: { plan: StudyPlan; onClose: () => void
     >
       <Card className="border-primary/20 overflow-hidden">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-purple-500/3 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-amber-500/3 to-transparent" />
           <CardHeader className="relative">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -1211,7 +1211,7 @@ function TaskDetailsDialog({
         </div>
 
         {/* AI Study Plan Action */}
-        <div className="bg-gradient-to-br from-primary/5 via-purple-500/3 to-transparent border border-primary/10 rounded-xl p-3.5 flex items-center justify-between gap-3 mt-1">
+        <div className="bg-gradient-to-br from-primary/5 via-orange-500/3 to-transparent border border-primary/10 rounded-xl p-3.5 flex items-center justify-between gap-3 mt-1">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
               <Sparkles className="h-3.5 w-3.5 text-primary" />

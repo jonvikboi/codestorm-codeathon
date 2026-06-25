@@ -251,7 +251,7 @@ export default function AttendancePage() {
           <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Overall Card */}
             <Card className="relative overflow-hidden border-primary/10">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-500/3 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-orange-500/3 to-transparent" />
               <CardContent className="p-5 relative flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">Overall Attendance</p>

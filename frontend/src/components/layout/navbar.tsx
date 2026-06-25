@@ -68,7 +68,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 lg:px-6">
+      <header className="sticky top-0 z-30 flex h-20 items-center gap-4 border-b border-border/30 bg-background/50 backdrop-blur-md px-6 lg:px-8">
         {/* Mobile Menu Button */}
         <button
           className="lg:hidden flex items-center justify-center h-9 w-9 rounded-xl hover:bg-muted transition-colors focus-ring"
@@ -85,28 +85,28 @@ export function Navbar() {
 
         {/* Mobile Logo */}
         <div className="flex items-center gap-2 lg:hidden">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-            <GraduationCap className="h-4 w-4 text-white" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
+            <GraduationCap className="h-4 w-4" />
           </div>
           <span className="font-bold text-sm">{APP_NAME}</span>
         </div>
 
         {/* Page Title (Desktop) */}
-        <h2 className="hidden lg:block text-lg font-semibold">{pageTitle}</h2>
+        <h2 className="hidden lg:block text-2xl font-bold text-foreground tracking-tight">{pageTitle}</h2>
 
         {/* Spacer */}
         <div className="flex-1" />
 
         {/* Search */}
-        <div className="hidden md:flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2 border border-border/50 w-full max-w-xs">
+        <div className="hidden md:flex items-center gap-2 bg-card rounded-2xl px-4 py-2.5 border border-border/40 w-full max-w-xs shadow-sm hover:border-primary/30 transition-all duration-200">
           <Search className="h-4 w-4 text-muted-foreground shrink-0" />
           <input
             type="text"
             placeholder="Search deadlines, tasks..."
-            className="bg-transparent text-sm outline-none w-full placeholder:text-muted-foreground"
+            className="bg-transparent text-sm outline-none w-full placeholder:text-muted-foreground text-foreground"
             aria-label="Search"
           />
-          <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border border-border/50 bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
+          <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded-lg border border-border/50 bg-muted px-1.5 text-[9px] font-bold text-muted-foreground select-none">
             ⌘K
           </kbd>
         </div>
@@ -192,7 +192,7 @@ export function Navbar() {
             aria-label="User menu"
             aria-expanded={profileOpen}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-600 text-xs font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-amber-500 text-xs font-bold text-white">
               {getInitials(mockStudent.fullName)}
             </div>
             <div className="hidden md:block text-left">

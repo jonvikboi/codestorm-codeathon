@@ -34,17 +34,17 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen border-r border-border/50 bg-sidebar transition-all duration-300 ease-in-out',
+        'fixed left-0 top-0 z-40 h-screen border-r border-border/40 bg-sidebar transition-all duration-300 ease-in-out',
         'hidden lg:flex flex-col',
-        collapsed ? 'w-[72px]' : 'w-[260px]'
+        collapsed ? 'w-[76px]' : 'w-[260px]'
       )}
       role="navigation"
       aria-label="Main navigation"
     >
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-4 border-b border-border/50">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-primary">
-          <GraduationCap className="h-5 w-5 text-white" />
+      <div className="flex h-20 items-center gap-3 px-6 border-b border-border/40">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/20">
+          <GraduationCap className="h-5 w-5" />
         </div>
         <AnimatePresence>
           {!collapsed && (
@@ -55,10 +55,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <h1 className="text-base font-bold tracking-tight whitespace-nowrap">
-                {APP_NAME}
+              <h1 className="text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
+                CampusFlow
               </h1>
-              <p className="text-[10px] text-muted-foreground -mt-0.5">
+              <p className="text-[10px] text-muted-foreground -mt-1 font-medium">
                 AI Student Platform
               </p>
             </motion.div>
@@ -67,7 +67,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + '/');
@@ -76,71 +76,53 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 focus-ring',
+                'group relative flex items-center justify-between rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200 focus-ring',
                 isActive
-                  ? 'text-primary bg-primary/8'
-                  : 'text-sidebar-foreground hover:bg-muted/60 hover:text-foreground'
+                  ? 'text-primary bg-primary/[0.04]'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              {isActive && (
+              <div className="flex items-center gap-3.5 relative z-10">
+                <item.icon
+                  className={cn(
+                    'h-[20px] w-[20px] shrink-0 transition-colors',
+                    isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                  )}
+                />
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="whitespace-nowrap overflow-hidden font-semibold"
+                    >
+                      {item.title}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Blue dot indicator for active state (Dribbble style) */}
+              {isActive && !collapsed && (
                 <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-xl bg-primary/8 border border-primary/15"
-                  transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+                  layoutId="sidebar-active-dot"
+                  className="h-1.5 w-1.5 rounded-full bg-primary relative z-10 mr-1"
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 />
               )}
-              <item.icon
-                className={cn(
-                  'relative z-10 h-[18px] w-[18px] shrink-0 transition-colors',
-                  isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                )}
-              />
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="relative z-10 whitespace-nowrap overflow-hidden"
-                  >
-                    {item.title}
-                  </motion.span>
-                )}
-              </AnimatePresence>
             </Link>
           );
         })}
       </nav>
 
-      {/* AI Branding */}
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="p-3"
-          >
-            <div className="rounded-xl bg-gradient-to-br from-primary/10 via-purple-500/5 to-blue-500/10 border border-primary/10 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold">Powered by AI</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">
-                Smart study plans, automated reminders, and intelligent scheduling.
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Collapse Toggle */}
-      <div className="border-t border-border/50 p-3">
+      <div className="border-t border-border/40 p-3">
         <button
           onClick={onToggle}
-          className="flex w-full items-center justify-center rounded-xl p-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors focus-ring"
+          className="flex w-full items-center justify-center rounded-xl p-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors focus-ring cursor-pointer"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <ChevronLeft

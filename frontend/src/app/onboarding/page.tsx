@@ -132,7 +132,7 @@ export default function OnboardingPage() {
           </div>
           <h1 className="text-2xl md:text-3xl font-bold mb-1">
             Welcome to{' '}
-            <span className="bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-emerald-500 to-amber-500 bg-clip-text text-transparent">
               {APP_NAME}
             </span>
           </h1>
