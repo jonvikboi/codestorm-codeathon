@@ -349,14 +349,14 @@ export default function DashboardPage() {
         {/* Right Column: Activity, Gamification, and AI widgets */}
         <div className="space-y-6">
           
-          {/* Daily Attendance Progress (Dribbble styled doughnut ring) */}
+          {/* Daily Attendance Progress (Dribbble styled split layout & mini rings) */}
           <motion.div variants={staggerItem}>
             <Card className="shadow-sm">
               <CardHeader className="pb-3 border-b border-border/30">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-bold flex items-center gap-2">
                     <Percent className="h-4 w-4 text-primary" />
-                    Attendance Status
+                    Attendance Tracker
                   </CardTitle>
                   <Badge
                     variant={attendanceStats.percentage >= 75 ? 'success' : 'destructive'}
@@ -366,73 +366,139 @@ export default function DashboardPage() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center py-2">
-                  {/* SVG progress circle */}
-                  <div className="relative h-32 w-32 flex items-center justify-center">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-5 py-2">
+                  {/* Left: Overall Ring */}
+                  <div className="relative h-24 w-24 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                      {/* Background circle track */}
                       <circle
                         cx="50"
                         cy="50"
                         r="40"
                         className="stroke-secondary fill-transparent"
-                        strokeWidth="8.5"
+                        strokeWidth="9"
                       />
-                      {/* Foreground attendance progress */}
                       <circle
                         cx="50"
                         cy="50"
                         r="40"
-                        className="stroke-[#39d3c3] fill-transparent transition-all duration-500 ease-out"
-                        strokeWidth="8.5"
+                        className="stroke-primary fill-transparent transition-all duration-500 ease-out"
+                        strokeWidth="9"
                         strokeDasharray="251.2"
                         strokeDashoffset={strokeDashoffset}
                         strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute flex flex-col items-center">
-                      <span className="text-2xl font-black text-foreground">
+                      <span className="text-xl font-black text-foreground">
                         {attendanceStats.percentage.toFixed(0)}%
                       </span>
-                      <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider">
                         Attended
                       </span>
                     </div>
                   </div>
 
-                  <div className="w-full mt-5 space-y-2">
-                    <div className="flex justify-between items-center text-xs font-semibold">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-[#39d3c3]" />
-                        Attended Classes
-                      </span>
-                      <span className="font-bold text-foreground">
+                  {/* Right: Breakdown details */}
+                  <div className="flex-1 space-y-2 min-w-0">
+                    <div className="text-xs">
+                      <p className="text-muted-foreground font-bold">Total classes</p>
+                      <p className="font-extrabold text-foreground text-sm mt-0.5">
                         {attendanceStats.attended} / {attendanceStats.total}
-                      </span>
+                      </p>
                     </div>
-                    <div className="flex justify-between items-center text-xs font-semibold">
-                      <span className="text-muted-foreground flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-red-400" />
-                        At-Risk Subjects
-                      </span>
-                      <span className="font-bold text-red-500">
-                        {attendanceStats.warnings.length} classes
-                      </span>
+                    <div className="text-xs">
+                      <p className="text-muted-foreground font-bold">Target status</p>
+                      <p className={cn(
+                        'font-extrabold text-xs mt-0.5 flex items-center gap-1',
+                        attendanceStats.percentage >= 75 ? 'text-emerald-500' : 'text-primary'
+                      )}>
+                        {attendanceStats.percentage >= 75 ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Safe zone
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="h-3.5 w-3.5 text-primary animate-pulse" /> At-risk (75% min)
+                          </>
+                        )}
+                      </p>
                     </div>
                   </div>
+                </div>
 
-                  {attendanceStats.warnings.length > 0 && (
-                    <div className="mt-4 w-full bg-red-500/5 border border-red-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                      <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-                      <div className="text-[11px] leading-relaxed">
-                        <p className="font-bold text-red-600 dark:text-red-400">Attendance Alert</p>
-                        <p className="text-muted-foreground mt-0.5 font-medium">
-                          Your attendance in <span className="font-bold text-foreground">{attendanceStats.warnings[0].subject}</span> is at {attendanceStats.warnings[0].pct.toFixed(0)}%. Attend more classes to clear the 75% bar.
-                        </p>
-                      </div>
+                {/* Subtitle / Label */}
+                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-4 mb-2 select-none">
+                  Core Subjects Attendance
+                </div>
+
+                {/* Concentric-like mini progress rings (Dribbble styled side-by-side gauges) */}
+                <div className="grid grid-cols-3 gap-2 w-full pt-3 border-t border-border/40">
+                  {/* Gauge 1: Machine Learning */}
+                  <div className="flex flex-col items-center text-center">
+                    <div className="relative h-14 w-14 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
+                        <circle cx="30" cy="30" r="23" className="stroke-secondary fill-transparent" strokeWidth="4.5" />
+                        <circle
+                          cx="30"
+                          cy="30"
+                          r="23"
+                          className="stroke-primary fill-transparent transition-all duration-500 ease-out"
+                          strokeWidth="4.5"
+                          strokeDasharray="144.5"
+                          strokeDashoffset={144.5 - (144.5 * 72) / 100}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute text-[10px] font-extrabold text-foreground">72%</span>
                     </div>
-                  )}
+                    <span className="text-[10px] font-bold text-foreground mt-1 truncate w-full">ML</span>
+                    <span className="text-[8px] text-primary font-bold mt-0.5">At-risk</span>
+                  </div>
+
+                  {/* Gauge 2: Cloud Computing */}
+                  <div className="flex flex-col items-center text-center">
+                    <div className="relative h-14 w-14 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
+                        <circle cx="30" cy="30" r="23" className="stroke-secondary fill-transparent" strokeWidth="4.5" />
+                        <circle
+                          cx="30"
+                          cy="30"
+                          r="23"
+                          className="stroke-emerald-500 fill-transparent transition-all duration-500 ease-out"
+                          strokeWidth="4.5"
+                          strokeDasharray="144.5"
+                          strokeDashoffset={144.5 - (144.5 * 88) / 100}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute text-[10px] font-extrabold text-foreground">88%</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-foreground mt-1 truncate w-full">Cloud</span>
+                    <span className="text-[8px] text-emerald-500 font-bold mt-0.5">Safe</span>
+                  </div>
+
+                  {/* Gauge 3: Operating Systems */}
+                  <div className="flex flex-col items-center text-center">
+                    <div className="relative h-14 w-14 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
+                        <circle cx="30" cy="30" r="23" className="stroke-secondary fill-transparent" strokeWidth="4.5" />
+                        <circle
+                          cx="30"
+                          cy="30"
+                          r="23"
+                          className="stroke-red-500 fill-transparent transition-all duration-500 ease-out"
+                          strokeWidth="4.5"
+                          strokeDasharray="144.5"
+                          strokeDashoffset={144.5 - (144.5 * 58) / 100}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="absolute text-[10px] font-extrabold text-foreground">58%</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-foreground mt-1 truncate w-full">OS</span>
+                    <span className="text-[8px] text-red-500 font-bold mt-0.5">Critical</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
