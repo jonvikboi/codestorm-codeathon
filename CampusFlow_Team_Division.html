@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusFlow — Team Work Division</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f4f0;
+      color: #1a1a1a;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      background: #1a1a2e;
+      color: #fff;
+      border-radius: 16px;
+      padding: 2rem 2rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .header .tagline {
+      font-size: 0.85rem;
+      color: #a0a0c0;
+    }
+
+    .tag {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #c8c8e8;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .meta-chip {
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      color: #b0b0d0;
+    }
+
+    .meta-chip strong {
+      color: #fff;
+    }
+
+    /* Timeline */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+      margin-bottom: 0.6rem;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 1.5rem;
+    }
+
+    .tblock {
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .tblock-name {
+      font-size: 0.72rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .tblock-time {
+      font-size: 0.68rem;
+      opacity: 0.75;
+    }
+
+    .tb1 {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .tb2 {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .tb3 {
+      background: #ede9fe;
+      color: #4c1d95;
+    }
+
+    .tb4 {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .tb5 {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    /* Cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 14px;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.25rem;
+      border: 1px solid #e8e6e0;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid #f0ede8;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .av1 {
+      background: #ede9fe;
+      color: #4c1d95;
+    }
+
+    .av2 {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .av3 {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .av4 {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .card-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .card-role {
+      font-size: 0.78rem;
+      color: #777;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 0.9rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .b-fe {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .b-be {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .b-n8n {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .b-ai {
+      background: #ede9fe;
+      color: #4c1d95;
+    }
+
+    .tasks {
+      list-style: none;
+    }
+
+    .tasks li {
+      display: flex;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid #f5f3ef;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #555;
+    }
+
+    .tasks li:last-child {
+      border-bottom: none;
+    }
+
+    .phase-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #aaa;
+      padding-top: 10px;
+      padding-bottom: 2px;
+      display: block;
+      grid-column: 1/-1;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .d1 {
+      background: #7c3aed;
+    }
+
+    .d2 {
+      background: #2563eb;
+    }
+
+    .d3 {
+      background: #059669;
+    }
+
+    .d4 {
+      background: #dc2626;
+    }
+
+    .tasks li strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+
+    /* Sync points */
+    .sync-box {
+      background: #fff;
+      border: 1px solid #e8e6e0;
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sync-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid #f5f3ef;
+      font-size: 0.82rem;
+    }
+
+    .sync-row:last-child {
+      border-bottom: none;
+    }
+
+    .sync-time {
+      background: #1a1a2e;
+      color: #fff;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .sync-row p {
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .sync-row strong {
+      color: #1a1a1a;
+    }
+
+    /* Scoring */
+    .scoring-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .score-card {
+      background: #fff;
+      border: 1px solid #e8e6e0;
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .score-num {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .score-label {
+      font-size: 0.75rem;
+      color: #777;
+    }
+
+    .sc1 {
+      color: #2563eb;
+    }
+
+    .sc2 {
+      color: #059669;
+    }
+
+    .sc3 {
+      color: #7c3aed;
+    }
+
+    .sc4 {
+      color: #d97706;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #aaa;
+      padding-top: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .timeline {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scoring-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .header h1 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-top">
+        <h1>🎓 CampusFlow — Team Division</h1>
+        <span class="tag">Hackathon 2025</span>
+      </div>
+      <div class="tagline">AI × WhatsApp × Google Calendar · Student Productivity Platform</div>
+      <div class="meta-row">
+        <div class="meta-chip"><strong>4</strong> members</div>
+        <div class="meta-chip"><strong>6</strong> hours</div>
+        <div class="meta-chip"><strong>Stack:</strong> Next.js · Node.js · n8n · Groq · Supabase</div>
+        <div class="meta-chip"><strong>Modules:</strong> Smart Deadline Manager · Attendance Risk Alerter</div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <p class="section-label">Hackathon phases</p>
+    <div class="timeline">
+      <div class="tblock tb1"><span class="tblock-name">Setup</span><span class="tblock-time">0:00–1:00</span></div>
+      <div class="tblock tb2"><span class="tblock-name">Core platform</span><span class="tblock-time">1:00–2:30</span>
+      </div>
+      <div class="tblock tb3"><span class="tblock-name">AI + modules</span><span class="tblock-time">2:30–4:00</span>
+      </div>
+      <div class="tblock tb4"><span class="tblock-name">n8n workflows</span><span class="tblock-time">4:00–5:00</span>
+      </div>
+      <div class="tblock tb5"><span class="tblock-name">Polish & demo</span><span class="tblock-time">5:00–6:00</span>
+      </div>
+    </div>
+
+    <!-- Team Cards -->
+    <p class="section-label">Team assignments</p>
+    <div class="grid">
+
+      <!-- P1 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar av1">P1</div>
+          <div>
+            <div class="card-name">Person 1 — Frontend Lead</div>
+            <div class="card-role">Next.js · Tailwind · Shadcn · Dashboard</div>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge b-fe">Frontend</span>
+        </div>
+        <ul class="tasks">
+          <li><span class="dot d1"></span><span><strong>Setup:</strong> Initialize Next.js project template, configure project folders (frontend/backend split), wire up base Tailwind & Tailwind CSS configuration</span></li>
+          <li><span class="dot d1"></span><span><strong>Template Core:</strong> Establish basic layout, dashboard shell, navigation framework, and theme context config to serve as a shared boilerplate</span></li>
+          <li><span class="dot d1"></span><span><strong>Boilerplate UI:</strong> Set up a skeleton page structure and mock API router configuration so teammates have a reference template</span></li>
+          <li><span class="dot d1"></span><span><strong>Documentation:</strong> Document repo onboarding, project setup instructions, and component usage guide for the rest of the team</span></li>
+        </ul>
+      </div>
+
+      <!-- P2 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar av2">P2</div>
+          <div>
+            <div class="card-name">Person 2 — Frontend + UI Polish</div>
+            <div class="card-role">Next.js · Task CRUD · Attendance UI · Pitch</div>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge b-fe">Frontend</span>
+          <span class="badge b-ai">AI UI</span>
+        </div>
+        <ul class="tasks">
+          <li><span class="dot d2"></span><span><strong>Core:</strong> Task/Deadline CRUD UI — form with WhatsApp
+              reminder time picker + "Add to Calendar" toggle, task list with status badges</span></li>
+          <li><span class="dot d2"></span><span><strong>Module — Attendance Risk Alerter UI:</strong> Subject attendance
+              % inputs, at-risk subjects highlighted, classes-needed calculation display, weekly alert preview</span>
+          </li>
+          <li><span class="dot d2"></span><span><strong>Integration:</strong> Wire both modules to backend API (Axios
+              calls), handle loading/error states, show n8n trigger confirmation toasts</span></li>
+          <li><span class="dot d2"></span><span><strong>Demo prep:</strong> Pitch deck (2 min), demo script, seed
+              realistic attendance data, run full user journey walkthrough with team</span></li>
+        </ul>
+      </div>
+
+      <!-- P3 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar av3">P3</div>
+          <div>
+            <div class="card-name">Person 3 — Backend + AI API</div>
+            <div class="card-role">Node.js/Express · Supabase · Groq API</div>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge b-be">Backend</span>
+          <span class="badge b-ai">AI API</span>
+        </div>
+        <ul class="tasks">
+          <li><span class="dot d3"></span><span><strong>Setup:</strong> Init Express project, Supabase schema (students,
+              tasks, attendance tables), auth with JWT, .env for Groq + Supabase + n8n keys</span></li>
+          <li><span class="dot d3"></span><span><strong>Core:</strong> POST /register, POST /login, full CRUD for /tasks
+              — on task create, immediately POST to n8n deadline webhook with student phone + deadline details</span>
+          </li>
+          <li><span class="dot d3"></span><span><strong>AI endpoints:</strong> POST /ai/study-schedule (deadline +
+              subjects → Groq → day-wise study plan JSON), POST /ai/attendance (subject % array → Groq → risk flags +
+              min classes needed)</span></li>
+          <li><span class="dot d3"></span><span><strong>Polish:</strong> GET /automations (fetch n8n execution logs),
+              robust error handling + input validation, README with all env vars and setup steps</span></li>
+        </ul>
+      </div>
+
+      <!-- P4 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="avatar av4">P4</div>
+          <div>
+            <div class="card-name">Person 4 — n8n + Integrations</div>
+            <div class="card-role">n8n Cloud · Twilio WhatsApp · Google Calendar</div>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge b-n8n">n8n</span>
+          <span class="badge b-be">Backend</span>
+        </div>
+        <ul class="tasks">
+          <li><span class="dot d4"></span><span><strong>Setup:</strong> n8n Cloud account + 2 blank workflows, Twilio
+              WhatsApp sandbox (5 min at twilio.com), Google Calendar OAuth2 — verify all three with a dummy POST before
+              touching anything else</span></li>
+          <li><span class="dot d4"></span><span><strong>Workflow 1 — Deadline Reminder:</strong> Webhook → Set (format
+              ISO date, compute reminderTime) → Google Calendar (create event) → Wait (24hr before) → Twilio WhatsApp
+              (reminder) → Wait (1hr before) → WhatsApp (final nudge)</span></li>
+          <li><span class="dot d4"></span><span><strong>Workflow 2 — Attendance Alert:</strong> Webhook → Set (weekly
+              trigger, build at-risk list) → Twilio WhatsApp (send alert per student: "You need X more classes in
+              DBMS!")</span></li>
+          <li><span class="dot d4"></span><span><strong>Testing:</strong> End-to-end test both workflows from the UI —
+              confirm WhatsApp arrives on real phone + Calendar event appears — share Production webhook URLs with
+              P3</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Sync Points -->
+    <p class="section-label">Critical sync points</p>
+    <div class="sync-box">
+      <div class="sync-row">
+        <span class="sync-time">1:00</span>
+        <p><strong>P4 → P3:</strong> Share both n8n webhook test URLs so P3 can wire them into task creation and
+          attendance endpoints from the start</p>
+      </div>
+      <div class="sync-row">
+        <span class="sync-time">2:00</span>
+        <p><strong>P3 → P1, P2:</strong> Share base API URL + full endpoint list — P1 and P2 can now connect all their
+          forms and stop using mock data</p>
+      </div>
+      <div class="sync-row">
+        <span class="sync-time">4:00</span>
+        <p><strong>P3 + P4:</strong> Integration test — POST to deadline webhook from Postman, confirm Google Calendar
+          event created + WhatsApp delivered to real phone</p>
+      </div>
+      <div class="sync-row">
+        <span class="sync-time">5:00</span>
+        <p><strong>P4 → P3:</strong> Switch both webhooks from Test URL to Production URL, update .env, re-test once</p>
+      </div>
+      <div class="sync-row">
+        <span class="sync-time">5:30</span>
+        <p><strong>All:</strong> Full demo run — register student → add deadline → WhatsApp arrives on phone → Calendar
+          event visible → Attendance alert fires → n8n shows green logs</p>
+      </div>
+    </div>
+
+    <!-- Scoring -->
+    <p class="section-label">Target score</p>
+    <div class="scoring-grid">
+      <div class="score-card">
+        <span class="score-num sc1">20</span>
+        <div class="score-label">Core platform<br>(login + dashboard + CRUD)</div>
+      </div>
+      <div class="score-card">
+        <span class="score-num sc2">30</span>
+        <div class="score-label">n8n workflows<br>(WhatsApp + Calendar)</div>
+      </div>
+      <div class="score-card">
+        <span class="score-num sc3">20</span>
+        <div class="score-label">AI feature module<br>(quality of output)</div>
+      </div>
+      <div class="score-card">
+        <span class="score-num sc4">+45</span>
+        <div class="score-label">Bonus available<br>(dark mode, 2nd WA nudge, pitch)</div>
+      </div>
+    </div>
+
+    <div class="footer">CampusAI Hackathon 2025 · CSE Dept · WhatsApp + Google Calendar Edition</div>
+
+  </div>
+</body>
+
+</html>
