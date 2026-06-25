@@ -230,7 +230,7 @@ export default function DashboardPage() {
                           />
                           {/* Completed Bar */}
                           <div
-                            className="w-2.5 bg-primary hover:opacity-90 rounded-full transition-all duration-300 relative group-hover:scale-y-105 origin-bottom shadow-[0_4px_10px_rgba(13,148,136,0.2)] cursor-help"
+                            className="w-2.5 bg-primary hover:opacity-90 rounded-full transition-all duration-300 relative group-hover:scale-y-105 origin-bottom shadow-[0_4px_10px_rgba(231,111,81,0.2)] cursor-help"
                             style={{ height: completedHeight }}
                             title={`Completed: ${d.completed}h`}
                           />
