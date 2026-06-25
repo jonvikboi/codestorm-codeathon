@@ -21,8 +21,6 @@ import {
   Pencil,
   Trash2,
   Brain,
-  Zap,
-  ChevronDown,
   X,
   Bell,
   BookOpen,
@@ -44,7 +42,8 @@ import {
 } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useToast } from '@/components/ui/toast';
-import { mockDeadlines, mockStudyPlan } from '@/lib/mock-data';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ErrorState } from '@/components/ui/error-state';
 import {
   cn,
   formatDate,
@@ -55,6 +54,8 @@ import {
 import { staggerContainer, staggerItem, cardHover } from '@/lib/animations';
 import { SUBJECTS, PRIORITY_OPTIONS, STATUS_OPTIONS, REMINDER_OPTIONS } from '@/constants';
 import type { Deadline, DeadlineView, DeadlineFilters, DeadlinePriority, StudyPlan } from '@/types';
+import { useAsync } from '@/hooks';
+import { deadlineService, studyPlanService } from '@/services';
 
 // ---- Zod Schema for Create/Edit Deadline ----
 const deadlineSchema = z.object({
@@ -95,7 +96,7 @@ function AutomationBadge({ status }: { status: string }) {
 
 export default function DeadlinesPage() {
   const { toast } = useToast();
-  const [deadlines, setDeadlines] = React.useState<Deadline[]>(mockDeadlines);
+  const [deadlines, setDeadlines] = React.useState<Deadline[]>([]);
   const [view, setView] = React.useState<DeadlineView>('grid');
   const [filters, setFilters] = React.useState<DeadlineFilters>({
     status: 'all',
@@ -107,8 +108,26 @@ export default function DeadlinesPage() {
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editDeadline, setEditDeadline] = React.useState<Deadline | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<Deadline | null>(null);
+  const [detailDeadline, setDetailDeadline] = React.useState<Deadline | null>(null);
   const [studyPlan, setStudyPlan] = React.useState<StudyPlan | null>(null);
   const [generatingPlan, setGeneratingPlan] = React.useState<string | null>(null);
+
+  // Async task fetching
+  const { loading, error, execute: fetchDeadlines } = useAsync<Deadline[]>();
+
+  const loadData = React.useCallback(async () => {
+    const res = await fetchDeadlines(() => deadlineService.getAll());
+    if (res.success) {
+      setDeadlines(res.data);
+    }
+  }, [fetchDeadlines]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadData]);
 
   // ---- Filtered deadlines ----
   const filteredDeadlines = React.useMemo(() => {
@@ -137,18 +156,30 @@ export default function DeadlinesPage() {
   // ---- Generate Study Plan ----
   const handleGeneratePlan = async (deadlineId: string) => {
     setGeneratingPlan(deadlineId);
-    await new Promise((r) => setTimeout(r, 2000));
-    setStudyPlan({ ...mockStudyPlan, deadlineId });
+    const res = await studyPlanService.generate(deadlineId);
     setGeneratingPlan(null);
-    toast({ title: 'Study Plan Generated!', message: 'AI has created a personalized study plan', type: 'success' });
+    if (res.success) {
+      setStudyPlan(res.data);
+      toast({ title: 'Study Plan Generated!', message: 'AI has created a personalized study plan', type: 'success' });
+    } else {
+      toast({ title: 'AI Generation Failed', message: res.message, type: 'error' });
+    }
   };
 
-  // ---- Delete handler ----
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    setDeadlines((prev) => prev.filter((d) => d.id !== deleteTarget.id));
-    setDeleteTarget(null);
-    toast({ title: 'Deadline Deleted', message: deleteTarget.title, type: 'info' });
+    const res = await deadlineService.delete(deleteTarget.id);
+    if (res.success) {
+      setDeadlines((prev) => prev.filter((d) => d.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      // Close details if deleted
+      if (detailDeadline?.id === deleteTarget.id) {
+        setDetailDeadline(null);
+      }
+      toast({ title: 'Deadline Deleted', message: deleteTarget.title, type: 'info' });
+    } else {
+      toast({ title: 'Delete Failed', message: res.message, type: 'error' });
+    }
   };
 
   return (
@@ -344,222 +375,281 @@ export default function DeadlinesPage() {
         </AnimatePresence>
       </motion.div>
 
-      {/* ---- GRID VIEW ---- */}
-      {view === 'grid' && (
-        <motion.div variants={staggerItem}>
-          {filteredDeadlines.length === 0 ? (
-            <EmptyState
-              icon={<CalendarClock className="h-8 w-8 text-muted-foreground" />}
-              title="No deadlines found"
-              description="Try adjusting your filters or create a new deadline to get started."
-              action={{ label: 'Create Deadline', onClick: () => setCreateOpen(true) }}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredDeadlines.map((deadline, idx) => (
-                <motion.div
-                  key={deadline.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  {...cardHover}
-                >
-                  <Card className="group hover:border-primary/20 transition-all duration-300 h-full flex flex-col">
-                    <CardContent className="p-5 flex-1 flex flex-col">
-                      {/* Top Row: Priority + Status + Actions */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <PriorityDot priority={deadline.priority} />
-                          <Badge className={cn('text-[10px] border', getPriorityColor(deadline.priority))}>
-                            {deadline.priority}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => setEditDeadline(deadline)}
-                            className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-                            aria-label={`Edit ${deadline.title}`}
-                          >
-                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(deadline)}
-                            className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors"
-                            aria-label={`Delete ${deadline.title}`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Title + Description */}
-                      <h3 className="text-sm font-semibold mb-1 line-clamp-2 group-hover:text-primary transition-colors">
-                        {deadline.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-                        {deadline.description}
-                      </p>
-
-                      {/* Subject Chip */}
-                      <div className="mb-3">
-                        <Badge variant="secondary" className="text-[10px]">
-                          {deadline.subject}
-                        </Badge>
-                      </div>
-
-                      {/* Spacer */}
-                      <div className="flex-1" />
-
-                      {/* Date + Reminder + Integration Badges */}
-                      <div className="space-y-2 pt-3 border-t border-border/50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock className="h-3 w-3" />
-                            {formatDate(deadline.dueDate)}
-                          </div>
-                          <span className={cn('text-xs font-medium', deadline.status === 'overdue' ? 'text-red-500' : 'text-muted-foreground')}>
-                            {formatRelativeTime(deadline.dueDate)}
-                          </span>
-                        </div>
-
-                        {/* Badges Row */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge variant="secondary" className="text-[10px] gap-1">
-                            <Bell className="h-2.5 w-2.5" />
-                            {REMINDER_OPTIONS.find((r) => r.value === deadline.reminderTime)?.label || deadline.reminderTime}
-                          </Badge>
-                          {deadline.whatsappReminder && (
-                            <Badge variant="success" className="text-[10px] gap-1">
-                              <MessageSquare className="h-2.5 w-2.5" />
-                              WhatsApp
-                            </Badge>
-                          )}
-                          {deadline.googleCalendar && (
-                            <Badge variant="info" className="text-[10px] gap-1">
-                              <Calendar className="h-2.5 w-2.5" />
-                              Calendar
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Status + Automation Row */}
-                        <div className="flex items-center justify-between">
-                          <Badge className={cn('text-[10px] border', getStatusColor(deadline.status))}>
-                            {deadline.status === 'completed' && <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />}
-                            {deadline.status === 'overdue' && <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />}
-                            {deadline.status}
-                          </Badge>
-                          <AutomationBadge status={deadline.automationStatus} />
-                        </div>
-                      </div>
-
-                      {/* AI Study Plan Button */}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="mt-3 w-full gap-1.5 text-xs"
-                        onClick={() => handleGeneratePlan(deadline.id)}
-                        disabled={generatingPlan === deadline.id}
+      {loading && deadlines.length === 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="h-[280px]">
+              <CardContent className="p-5 space-y-4">
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-12" />
+                </div>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <div className="border-t border-border/50 pt-4 space-y-2">
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : error && deadlines.length === 0 ? (
+        <ErrorState
+          title="Failed to load deadlines"
+          message={error}
+          onRetry={loadData}
+        />
+      ) : (
+        <>
+          {/* ---- GRID VIEW ---- */}
+          {view === 'grid' && (
+            <motion.div variants={staggerItem}>
+              {filteredDeadlines.length === 0 ? (
+                <EmptyState
+                  icon={<CalendarClock className="h-8 w-8 text-muted-foreground" />}
+                  title="No deadlines found"
+                  description="Try adjusting your filters or create a new deadline to get started."
+                  action={{ label: 'Create Deadline', onClick: () => setCreateOpen(true) }}
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredDeadlines.map((deadline, idx) => (
+                    <motion.div
+                      key={deadline.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: idx * 0.05 }}
+                      {...cardHover}
+                    >
+                      <Card
+                        className="group hover:border-primary/20 transition-all duration-300 h-full flex flex-col cursor-pointer"
+                        onClick={() => setDetailDeadline(deadline)}
                       >
-                        {generatingPlan === deadline.id ? (
-                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-                            <Sparkles className="h-3 w-3" />
-                          </motion.div>
-                        ) : (
-                          <Brain className="h-3 w-3" />
-                        )}
-                        {generatingPlan === deadline.id ? 'Generating...' : 'Generate Study Plan'}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-      )}
+                        <CardContent className="p-5 flex-1 flex flex-col">
+                          {/* Top Row: Priority + Status + Actions */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <PriorityDot priority={deadline.priority} />
+                              <Badge className={cn('text-[10px] border', getPriorityColor(deadline.priority))}>
+                                {deadline.priority}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditDeadline(deadline);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                                aria-label={`Edit ${deadline.title}`}
+                              >
+                                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget(deadline);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors"
+                                aria-label={`Delete ${deadline.title}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </button>
+                            </div>
+                          </div>
 
-      {/* ---- TIMELINE VIEW ---- */}
-      {view === 'timeline' && (
-        <motion.div variants={staggerItem} className="space-y-2">
-          {filteredDeadlines.length === 0 ? (
-            <EmptyState
-              icon={<CalendarClock className="h-8 w-8 text-muted-foreground" />}
-              title="No deadlines found"
-              description="Try adjusting your filters or create a new deadline."
-              action={{ label: 'Create Deadline', onClick: () => setCreateOpen(true) }}
-            />
-          ) : (
-            filteredDeadlines
-              .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-              .map((deadline, idx) => (
-                <motion.div
-                  key={deadline.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: idx * 0.05 }}
-                  className="flex gap-4"
-                >
-                  {/* Timeline Line */}
-                  <div className="flex flex-col items-center pt-2">
-                    <PriorityDot priority={deadline.priority} />
-                    {idx < filteredDeadlines.length - 1 && (
-                      <div className="w-px flex-1 bg-border mt-2" />
-                    )}
-                  </div>
-
-                  {/* Card */}
-                  <Card className="flex-1 mb-2 hover:border-primary/20 transition-colors group">
-                    <CardContent className="p-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                          {/* Title + Description */}
+                          <h3 className="text-sm font-semibold mb-1 line-clamp-2 group-hover:text-primary transition-colors">
                             {deadline.title}
                           </h3>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {deadline.subject} · {formatDate(deadline.dueDate)} · {formatRelativeTime(deadline.dueDate)}
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                            {deadline.description}
                           </p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge className={cn('text-[10px] border', getPriorityColor(deadline.priority))}>
-                            {deadline.priority}
-                          </Badge>
-                          <Badge className={cn('text-[10px] border', getStatusColor(deadline.status))}>
-                            {deadline.status}
-                          </Badge>
-                          {deadline.whatsappReminder && (
-                            <Badge variant="success" className="text-[10px] gap-0.5">
-                              <MessageSquare className="h-2.5 w-2.5" />
-                            </Badge>
-                          )}
-                          {deadline.googleCalendar && (
-                            <Badge variant="info" className="text-[10px] gap-0.5">
-                              <Calendar className="h-2.5 w-2.5" />
-                            </Badge>
-                          )}
-                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => setEditDeadline(deadline)} className="p-1 rounded-md hover:bg-muted" aria-label="Edit">
-                              <Pencil className="h-3 w-3 text-muted-foreground" />
-                            </button>
-                            <button onClick={() => setDeleteTarget(deadline)} className="p-1 rounded-md hover:bg-destructive/10" aria-label="Delete">
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))
-          )}
-        </motion.div>
-      )}
 
-      {/* ---- CALENDAR VIEW ---- */}
-      {view === 'calendar' && (
-        <motion.div variants={staggerItem}>
-          <CalendarView deadlines={filteredDeadlines} onEdit={setEditDeadline} onDelete={setDeleteTarget} />
-        </motion.div>
+                          {/* Subject Chip */}
+                          <div className="mb-3">
+                            <Badge variant="secondary" className="text-[10px]">
+                              {deadline.subject}
+                            </Badge>
+                          </div>
+
+                          {/* Spacer */}
+                          <div className="flex-1" />
+
+                          {/* Date + Reminder + Integration Badges */}
+                          <div className="space-y-2 pt-3 border-t border-border/50">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                {formatDate(deadline.dueDate)}
+                              </div>
+                              <span className={cn('text-xs font-medium', deadline.status === 'overdue' ? 'text-red-500' : 'text-muted-foreground')}>
+                                {formatRelativeTime(deadline.dueDate)}
+                              </span>
+                            </div>
+
+                            {/* Badges Row */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <Badge variant="secondary" className="text-[10px] gap-1">
+                                <Bell className="h-2.5 w-2.5" />
+                                {REMINDER_OPTIONS.find((r) => r.value === deadline.reminderTime)?.label || deadline.reminderTime}
+                              </Badge>
+                              {deadline.whatsappReminder && (
+                                <Badge variant="success" className="text-[10px] gap-1">
+                                  <MessageSquare className="h-2.5 w-2.5" />
+                                  WhatsApp
+                                </Badge>
+                              )}
+                              {deadline.googleCalendar && (
+                                <Badge variant="info" className="text-[10px] gap-1">
+                                  <Calendar className="h-2.5 w-2.5" />
+                                  Calendar
+                                </Badge>
+                              )}
+                            </div>
+
+                            {/* Status + Automation Row */}
+                            <div className="flex items-center justify-between">
+                              <Badge className={cn('text-[10px] border', getStatusColor(deadline.status))}>
+                                {deadline.status === 'completed' && <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />}
+                                {deadline.status === 'overdue' && <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />}
+                                {deadline.status}
+                              </Badge>
+                              <AutomationBadge status={deadline.automationStatus} />
+                            </div>
+                          </div>
+
+                          {/* AI Study Plan Button */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-3 w-full gap-1.5 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGeneratePlan(deadline.id);
+                            }}
+                            disabled={generatingPlan === deadline.id}
+                          >
+                            {generatingPlan === deadline.id ? (
+                              <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                                <Sparkles className="h-3 w-3" />
+                              </motion.div>
+                            ) : (
+                              <Brain className="h-3 w-3" />
+                            )}
+                            {generatingPlan === deadline.id ? 'Generating...' : 'Generate Study Plan'}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ---- TIMELINE VIEW ---- */}
+          {view === 'timeline' && (
+            <motion.div variants={staggerItem} className="space-y-2">
+              {filteredDeadlines.length === 0 ? (
+                <EmptyState
+                  icon={<CalendarClock className="h-8 w-8 text-muted-foreground" />}
+                  title="No deadlines found"
+                  description="Try adjusting your filters or create a new deadline."
+                  action={{ label: 'Create Deadline', onClick: () => setCreateOpen(true) }}
+                />
+              ) : (
+                filteredDeadlines
+                  .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                  .map((deadline, idx) => (
+                    <motion.div
+                      key={deadline.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: idx * 0.05 }}
+                      className="flex gap-4"
+                    >
+                      {/* Timeline Line */}
+                      <div className="flex flex-col items-center pt-2">
+                        <PriorityDot priority={deadline.priority} />
+                        {idx < filteredDeadlines.length - 1 && (
+                          <div className="w-px flex-1 bg-border mt-2" />
+                        )}
+                      </div>
+
+                      {/* Card */}
+                      <Card
+                        className="flex-1 mb-2 hover:border-primary/20 transition-colors group cursor-pointer"
+                        onClick={() => setDetailDeadline(deadline)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                                {deadline.title}
+                              </h3>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {deadline.subject} · {formatDate(deadline.dueDate)} · {formatRelativeTime(deadline.dueDate)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge className={cn('text-[10px] border', getPriorityColor(deadline.priority))}>
+                                {deadline.priority}
+                              </Badge>
+                              <Badge className={cn('text-[10px] border', getStatusColor(deadline.status))}>
+                                {deadline.status}
+                              </Badge>
+                              {deadline.whatsappReminder && (
+                                <Badge variant="success" className="text-[10px] gap-0.5">
+                                  <MessageSquare className="h-2.5 w-2.5" />
+                                </Badge>
+                              )}
+                              {deadline.googleCalendar && (
+                                <Badge variant="info" className="text-[10px] gap-0.5">
+                                  <Calendar className="h-2.5 w-2.5" />
+                                </Badge>
+                              )}
+                              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditDeadline(deadline);
+                                  }}
+                                  className="p-1 rounded-md hover:bg-muted"
+                                  aria-label="Edit"
+                                >
+                                  <Pencil className="h-3 w-3 text-muted-foreground" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteTarget(deadline);
+                                  }}
+                                  className="p-1 rounded-md hover:bg-destructive/10"
+                                  aria-label="Delete"
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))
+              )}
+            </motion.div>
+          )}
+
+          {/* ---- CALENDAR VIEW ---- */}
+          {view === 'calendar' && (
+            <motion.div variants={staggerItem}>
+              <CalendarView deadlines={filteredDeadlines} onViewDetails={setDetailDeadline} />
+            </motion.div>
+          )}
+        </>
       )}
 
       {/* ---- AI STUDY PLAN DISPLAY ---- */}
@@ -569,24 +659,47 @@ export default function DeadlinesPage() {
         )}
       </AnimatePresence>
 
+      {/* ---- TASK DETAILS DIALOG ---- */}
+      <AnimatePresence>
+        {detailDeadline && (
+          <TaskDetailsDialog
+            open={!!detailDeadline}
+            onClose={() => setDetailDeadline(null)}
+            deadline={detailDeadline}
+            onEdit={setEditDeadline}
+            onDelete={setDeleteTarget}
+            onStatusChange={async (id, status) => {
+              const res = await deadlineService.update(id, { status });
+              if (res.success) {
+                setDeadlines((prev) => prev.map((d) => (d.id === id ? res.data : d)));
+                setDetailDeadline(res.data);
+                toast({ title: 'Status Updated!', message: `Task status changed to ${status}`, type: 'success' });
+              } else {
+                toast({ title: 'Update Failed', message: res.message, type: 'error' });
+              }
+            }}
+            onGenerateStudyPlan={handleGeneratePlan}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ---- CREATE DEADLINE DIALOG ---- */}
       <CreateEditDeadlineDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSubmit={(data) => {
-          const newDeadline: Deadline = {
+        onSubmit={async (data) => {
+          const res = await deadlineService.create({
             ...data,
-            id: `dl-${Date.now()}`,
             priority: data.priority as DeadlinePriority,
             reminderTime: data.reminderTime as Deadline['reminderTime'],
-            status: 'pending',
-            automationStatus: 'waiting',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-          setDeadlines((prev) => [newDeadline, ...prev]);
-          setCreateOpen(false);
-          toast({ title: 'Deadline Created!', message: data.title, type: 'success' });
+          });
+          if (res.success) {
+            setDeadlines((prev) => [res.data, ...prev]);
+            setCreateOpen(false);
+            toast({ title: 'Deadline Created!', message: `${data.title} - n8n Workflow Triggered!`, type: 'success' });
+          } else {
+            toast({ title: 'Creation Failed', message: res.message, type: 'error' });
+          }
         }}
       />
 
@@ -596,19 +709,25 @@ export default function DeadlinesPage() {
           open={!!editDeadline}
           onClose={() => setEditDeadline(null)}
           defaultValues={editDeadline}
-          onSubmit={(data) => {
-            setDeadlines((prev) =>
-              prev.map((d) =>
-                d.id === editDeadline.id
-                  ? { ...d, ...data, priority: data.priority as DeadlinePriority, reminderTime: data.reminderTime as Deadline['reminderTime'], updatedAt: new Date().toISOString() }
-                  : d
-              )
-            );
-            setEditDeadline(null);
-            toast({ title: 'Deadline Updated!', message: data.title, type: 'success' });
+          onSubmit={async (data) => {
+            const res = await deadlineService.update(editDeadline.id, {
+              ...data,
+              priority: data.priority as DeadlinePriority,
+              reminderTime: data.reminderTime as Deadline['reminderTime'],
+            });
+            if (res.success) {
+              setDeadlines((prev) =>
+                prev.map((d) => (d.id === editDeadline.id ? res.data : d))
+              );
+              setEditDeadline(null);
+              toast({ title: 'Deadline Updated!', message: data.title, type: 'success' });
+            } else {
+              toast({ title: 'Update Failed', message: res.message, type: 'error' });
+            }
           }}
         />
       )}
+
 
       {/* ---- DELETE CONFIRMATION DIALOG ---- */}
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
@@ -790,7 +909,16 @@ function CreateEditDeadlineDialog({
 // ============================================================
 // Calendar View
 // ============================================================
-function CalendarView({ deadlines, onEdit, onDelete }: { deadlines: Deadline[]; onEdit: (d: Deadline) => void; onDelete: (d: Deadline) => void }) {
+// ============================================================
+// Calendar View
+// ============================================================
+function CalendarView({
+  deadlines,
+  onViewDetails,
+}: {
+  deadlines: Deadline[];
+  onViewDetails: (d: Deadline) => void;
+}) {
   const today = new Date();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
@@ -828,6 +956,11 @@ function CalendarView({ deadlines, onEdit, onDelete }: { deadlines: Deadline[]; 
             return (
               <div
                 key={day}
+                onClick={() => {
+                  if (dayDeadlines.length > 0) {
+                    onViewDetails(dayDeadlines[0]);
+                  }
+                }}
                 className={cn(
                   'aspect-square p-1 rounded-lg border border-transparent text-center relative',
                   isToday && 'bg-primary/5 border-primary/20',
@@ -939,5 +1072,206 @@ function StudyPlanCard({ plan, onClose }: { plan: StudyPlan; onClose: () => void
     </motion.div>
   );
 }
+
+// ============================================================
+// Task Details Dialog
+// ============================================================
+function TaskDetailsDialog({
+  open,
+  onClose,
+  deadline,
+  onEdit,
+  onDelete,
+  onStatusChange,
+  onGenerateStudyPlan,
+}: {
+  open: boolean;
+  onClose: () => void;
+  deadline: Deadline | null;
+  onEdit: (d: Deadline) => void;
+  onDelete: (d: Deadline) => void;
+  onStatusChange: (id: string, status: Deadline['status']) => void;
+  onGenerateStudyPlan: (id: string) => void;
+}) {
+  if (!deadline) return null;
+
+  return (
+    <Dialog open={open} onClose={onClose} className="max-w-lg">
+      <DialogClose onClose={onClose} />
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-primary" />
+          Task Details
+        </DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-4 mt-3">
+        {/* Title */}
+        <div>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Title</span>
+          <h3 className="text-base font-bold mt-0.5 text-foreground">{deadline.title}</h3>
+        </div>
+
+        {/* Subject */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Subject</span>
+            <div className="mt-1">
+              <Badge variant="secondary" className="text-xs font-medium px-2.5 py-0.5">
+                {deadline.subject}
+              </Badge>
+            </div>
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Priority</span>
+            <div className="mt-1 flex items-center gap-1.5">
+              <div className={cn(
+                'h-2 w-2 rounded-full shrink-0',
+                deadline.priority === 'critical' ? 'bg-red-500' : deadline.priority === 'high' ? 'bg-orange-500' : deadline.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
+              )} />
+              <Badge className={cn('text-xs border px-2 py-0.5', getPriorityColor(deadline.priority))}>
+                {deadline.priority}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Description</span>
+          <p className="text-sm text-muted-foreground mt-1 leading-relaxed whitespace-pre-line bg-muted/30 p-3 rounded-xl border border-border/30">
+            {deadline.description}
+          </p>
+        </div>
+
+        {/* Due Date & Reminder */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Due Date</span>
+            <p className="text-sm font-medium text-foreground mt-1 flex items-center gap-1.5">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              {formatDate(deadline.dueDate)}
+            </p>
+            <span className={cn('text-[11px] font-medium block mt-0.5', deadline.status === 'overdue' ? 'text-red-500' : 'text-muted-foreground')}>
+              ({formatRelativeTime(deadline.dueDate)})
+            </span>
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Reminder Time</span>
+            <p className="text-sm font-medium text-foreground mt-1 flex items-center gap-1.5">
+              <Bell className="h-4 w-4 text-muted-foreground" />
+              {REMINDER_OPTIONS.find((r) => r.value === deadline.reminderTime)?.label || deadline.reminderTime}
+            </p>
+          </div>
+        </div>
+
+        {/* Status Dropdown */}
+        <div className="grid grid-cols-2 gap-4 border-t border-border/30 pt-3">
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Integrations</span>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {deadline.whatsappReminder ? (
+                <Badge variant="success" className="text-[11px] gap-1 px-2">
+                  <MessageSquare className="h-3 w-3" />
+                  WhatsApp sandbox
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-[11px] px-2 text-muted-foreground">
+                  WhatsApp Off
+                </Badge>
+              )}
+              {deadline.googleCalendar ? (
+                <Badge variant="info" className="text-[11px] gap-1 px-2">
+                  <Calendar className="h-3 w-3" />
+                  Calendar Sync
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-[11px] px-2 text-muted-foreground">
+                  Calendar Off
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Current Status</span>
+            <div className="mt-1">
+              <Select
+                value={deadline.status}
+                onChange={(e) => onStatusChange(deadline.id, e.target.value as Deadline['status'])}
+                className="h-8 text-xs py-0"
+              >
+                {STATUS_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Study Plan Action */}
+        <div className="bg-gradient-to-br from-primary/5 via-purple-500/3 to-transparent border border-primary/10 rounded-xl p-3.5 flex items-center justify-between gap-3 mt-1">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              AI Study Plan
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Generate a personalized study roadmap for this task.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 text-xs shrink-0 bg-background"
+            onClick={() => {
+              onGenerateStudyPlan(deadline.id);
+              onClose();
+            }}
+          >
+            <Brain className="h-3.5 w-3.5" />
+            Generate
+          </Button>
+        </div>
+      </div>
+
+      <DialogFooter className="mt-4 border-t border-border/30 pt-3">
+        <div className="flex w-full items-center justify-between gap-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              onDelete(deadline);
+              onClose();
+            }}
+            className="gap-1.5"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Delete
+          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                onEdit(deadline);
+                onClose();
+              }}
+              className="gap-1.5"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </div>
+      </DialogFooter>
+    </Dialog>
+  );
+}
+
 
 

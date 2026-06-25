@@ -14,6 +14,7 @@ import type {
   AiTip,
   CalendarEvent,
   Student,
+  SubjectAttendance,
 } from '@/types';
 
 // ---- Current Student ----
@@ -417,3 +418,14 @@ export const mockCalendarEvents: CalendarEvent[] = [
   { id: 'ce-005', title: 'CN Assignment Due', date: '2026-07-01', type: 'deadline', color: '#22c55e' },
   { id: 'ce-006', title: 'AI Presentation', date: '2026-07-02', type: 'deadline', color: '#eab308' },
 ];
+
+// ---- Attendance ----
+export const mockAttendance: SubjectAttendance[] = [
+  { id: 'att-001', subject: 'Machine Learning', classesAttended: 18, totalClasses: 25 },
+  { id: 'att-002', subject: 'Cloud Computing', classesAttended: 22, totalClasses: 25 },
+  { id: 'att-003', subject: 'Operating Systems', classesAttended: 14, totalClasses: 24 },
+  { id: 'att-004', subject: 'Database Management Systems', classesAttended: 19, totalClasses: 25 },
+  { id: 'att-005', subject: 'Artificial Intelligence', classesAttended: 17, totalClasses: 24 },
+  { id: 'att-006', subject: 'Computer Networks', classesAttended: 20, totalClasses: 25 },
+];
+
